@@ -45,12 +45,18 @@
 #include "board.h"
 #include "mxc_delay.h"
 
+#define DELTA_FCPU_60M
 
 #include "i2c_c.h"
+#include "spi_c.h"
 #include "utils.h"
 
-#define DELTA_FCPU_60M
+
 #include "Delta.h"
+
+#include "A121/radar.h"
+
+#include "example_detector_distance.h"
 
 /***** Definitions *****/
 
@@ -59,17 +65,38 @@
 /***** Functions *****/
 
 // *****************************************************************************
+
+#define spi MXC_SPI0
+#define P_SS (1 << 4)
+#define P_MOSI (1 << 5)
+#define P_MISO (1 << 6)
+#define P_SCK (1 << 7)
 int main(void)
 {
-    int count = 0;
 
-    printf("Hello World!\n");
+	while(1);
 
-    while (1) {
-        LED_On(LED1);
-        MXC_Delay(500000);
-        LED_Off(LED1);
-        MXC_Delay(500000);
-        printf("count : %d\n", count++);
-    }
+	MXC_UART_Init(MXC_UART0, 115200, 0);
+	SPIC_Init(MXC_SPI0);
+    UART_WriteStr(MXC_UART0, "begin\r\n");
+
+    bool radarInitSuccess = Radar_Init();
+    printf("Radar init %s\r\n", radarInitSuccess ? "success" : "FAILED");
+    printf("RSS version: %s\r\n", acc_version_get());
+
+    int result = acc_example_detector_distance();
+    printf("END, Result: %d\r\n", result);
+
+    while(1);
+
+    int loopctr = 0;
+    while(1){
+	   RSS_Log(ACC_LOG_LEVEL_INFO, "Main", "Loop %d", loopctr++);
+	   SPIC_Send8(MXC_SPI0, 0x7A);
+
+	   int flags = MXC_SPI0->intfl;
+	   //sprintf(strbuf, "done TRx, flags: %d ctrl0: %d\r\n", flags, MXC_SPI0->ctrl0);
+	   //UART_WriteStr(MXC_UART0, strbuf);
+	   MXC_Delay(100000);
+   }
 }

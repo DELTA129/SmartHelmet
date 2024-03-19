@@ -13,5 +13,11 @@
 
 # Add your config here!
 
+MFLOAT_ABI = hard
 
 
+VPATH += A121
+PROJ_LDFLAGS += -LA121/rss/lib
+PROJ_LIBS += acconeer_a121
+PROJ_LIBS += acc_detector_distance_a121
+PROJ_LIBS += acc_detector_presence_a121
